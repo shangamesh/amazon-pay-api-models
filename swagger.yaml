@@ -1,718 +1,1256 @@
----
-swagger: "2.0"
+swagger: '2.0'
 info:
-  description: "This is a sample server Petstore server.  You can find out more about\
-    \ Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).\
-    \  For this sample, you can use the api key `special-key` to test the authorization\
-    \ filters."
-  version: "1.0.5"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
-  contact:
-    email: "apiteam@swagger.io"
+  description: 'API documentation for Amazon Pay. There are 4 primary objects that you can use to complete your payments with Amazon Pay: CheckoutSession, ChargePermission, Charge, and Refund. Each represents a distinct payment operation or agreement, and each has different periods of relevance and use'
+  version: '1.0'
+  title: Amazon Pay API
   license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
+    name: Amazon Pay Integration Guide
+    url: https://developer.amazon.com/docs/amazon-pay-api-v2/introduction.html
+host: pay-api.amazon.com
+basePath: /
 tags:
-- name: "pet"
-  description: "Everything about your Pets"
-  externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
-  description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
+  - name: Buyer
+    description: The Buyer object includes details about the buyer such as name, email, unique Amazon Pay identifier, default shipping address postal and country code. You should only use this object if you’ve implemented Amazon Sign-in and only because you need to retrieve Buyer details before the buyer starts Amazon Pay checkout.
+  - name: Charge
+    description: A Charge represents a single payment transaction. Use a Charge to either authorize an amount and capture it later, or authorize and capture payment immediately.
+  - name: Charge Permission
+    description: A Charge Permission object represents buyer consent to be charged. You can either request a one-time or a recurring Charge Permission object.
+  - name: Checkout Session
+    description: A Checkout Session represents a single active session (or engagement) for a buyer on your website. The Checkout Session can be used to facilitate a one-time charge, multiple charges, or recovery from a declined payment.
+  - name: Delivery Tracker
+    description: Amazon Pay uses the Delivery Tracker object to inform the buyer on Alexa when shipments are out for delivery and when they are delivered.
+  - name: Refund
+    description: A Refund allows you (the merchant) to refund some or all of a previously-captured Charge to the buyer. A refund can only be initiated on a previously-captured Charge, and multiple Refunds can be initiated on a single Charge.
 schemes:
-- "https"
-- "http"
+  - https
 paths:
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-      - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
-      consumes:
-      - "multipart/form-data"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to update"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "additionalMetadata"
-        in: "formData"
-        description: "Additional data to pass to server"
-        required: false
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "file to upload"
-        required: false
-        type: "file"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet:
-    post:
-      tags:
-      - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    put:
-      tags:
-      - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByStatus:
+  /v2/buyers/{buyerToken}:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
+        - Buyer
+      summary: Get Buyer
+      operationId: getCheckoutSessionUsingGET
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-          enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: buyerToken
+          in: path
+          description: buyerToken
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: Success
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByTags:
+            $ref: '#/definitions/BuyerResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
+  /v2/chargePermissions/{chargePermissionId}:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
+        - Charge Permission
+      summary: Get Charge Permission
+      operationId: getChargePermissionUsingGET
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: chargePermissionId
+          in: path
+          description: chargePermissionId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: Success
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
-  /pet/{petId}:
-    get:
+            $ref: '#/definitions/ChargePermissionResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
+    patch:
       tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - api_key: []
-    post:
-      tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
+        - Charge Permission
+      summary: Update Charge Permission
+      operationId: updateChargePermissionUsingPATCH
       consumes:
-      - "application/x-www-form-urlencoded"
+        - application/xml
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "name"
-        in: "formData"
-        description: "Updated name of the pet"
-        required: false
-        type: "string"
-      - name: "status"
-        in: "formData"
-        description: "Updated status of the pet"
-        required: false
-        type: "string"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: chargePermissionId
+          in: path
+          description: chargePermissionId
+          required: true
+          type: string
+        - in: body
+          name: updateChargePermissionRequest
+          description: updateChargePermissionRequest
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateChargePermissionRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ChargePermissionResponse'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '422':
+          description: Unprocessable Entity
+  /v2/chargePermissions/{chargePermissionId}/complete:
     delete:
       tags:
-      - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
+        - Charge Permission
+      summary: Close Charge Permission
+      operationId: closeChargePermissionUsingDELETE
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "api_key"
-        in: "header"
-        required: false
-        type: "string"
-      - name: "petId"
-        in: "path"
-        description: "Pet id to delete"
-        required: true
-        type: "integer"
-        format: "int64"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: chargePermissionId
+          in: path
+          description: chargePermissionId
+          required: true
+          type: string
+        - in: body
+          name: closeChargePermissionRequest
+          description: closeChargePermissionRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CloseChargePermissionRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/order:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ChargePermissionResponse'
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/charges/:
     post:
       tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
+        - Charge
+      summary: Create Charge
+      operationId: createChargeUsingPOST
       consumes:
-      - "application/json"
+        - application/xml
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - in: "body"
-        name: "body"
-        description: "order placed for purchasing the pet"
-        required: true
-        schema:
-          $ref: "#/definitions/Order"
-      responses:
-        200:
-          description: "successful operation"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: createChargeRequest
+          description: createChargeRequest
+          required: true
           schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
+            $ref: '#/definitions/CreateChargeRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+        - name: x-amz-pay-idempotency-key
+          in: header
+          description: x-amz-pay-idempotency-key
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Ok
+          schema:
+            $ref: '#/definitions/ChargeResponse'
+        '201':
+          description: Success
+          schema:
+            $ref: '#/definitions/ChargeResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/charges/{chargeId}:
     get:
       tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.\
-        \ Other values will generated exceptions"
-      operationId: "getOrderById"
+        - Charge
+      summary: Get Charge
+      operationId: getChargeUsingGET
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of pet that needs to be fetched"
-        required: true
-        type: "integer"
-        maximum: 10
-        minimum: 1
-        format: "int64"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: chargeId
+          in: path
+          description: chargeId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: Success
           schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
+            $ref: '#/definitions/ChargeResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
+  /v2/charges/{chargeId}/cancel:
     delete:
       tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.\
-        \ Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
+        - Charge
+      summary: Cancel Charge
+      operationId: cancelChargeUsingDELETE
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /store/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: cancelChargeRequest
+          description: cancelChargeRequest
+          required: true
           schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /user/createWithArray:
+            $ref: '#/definitions/CancelChargeRequest'
+        - name: chargeId
+          in: path
+          description: chargeId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ChargeResponse'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/charges/{chargeId}/capture:
     post:
       tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
+        - Charge
+      summary: Capture Charge
+      operationId: captureChargeUsingPOST
       consumes:
-      - "application/json"
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: captureChargeRequest
+          description: captureChargeRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CaptureChargeRequest'
+        - name: chargeId
+          in: path
+          description: chargeId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+        - name: x-amz-pay-idempotency-key
+          in: header
+          description: x-amz-pay-idempotency-key
+          required: true
+          type: string
       responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ChargeResponse'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/checkoutSessions/:
     post:
       tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
+        - Checkout Session
+      summary: Create Checkout Session
+      operationId: createCheckoutSessionUsingPOST
       consumes:
-      - "application/json"
+        - application/xml
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: createCheckoutSessionRequest
+          description: createCheckoutSessionRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CreateCheckoutSessionRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CheckoutSessionResponse'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+  /v2/checkoutSessions/{checkoutSessionId}:
     get:
       tags:
-      - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
+        - Checkout Session
+      summary: Get Checkout Session
+      operationId: getCheckoutSessionUsingGET_1
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
-        required: true
-        type: "string"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: checkoutSessionId
+          in: path
+          description: checkoutSessionId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        200:
-          description: "successful operation"
+        '200':
+          description: Success
           schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-    put:
+            $ref: '#/definitions/CheckoutSessionResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
+    patch:
       tags:
-      - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
+        - Checkout Session
+      summary: Update Checkout Session
+      operationId: updateCheckoutSessionUsingPATCH
       consumes:
-      - "application/json"
+        - application/xml
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - name: "username"
-        in: "path"
-        description: "name that need to be updated"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        description: "Updated user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
-    delete:
-      tags:
-      - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be deleted"
-        required: true
-        type: "string"
-      responses:
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-  /user/login:
-    get:
-      tags:
-      - "user"
-      summary: "Logs user into the system"
-      description: ""
-      operationId: "loginUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
-        required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          headers:
-            X-Expires-After:
-              type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: checkoutSessionId
+          in: path
+          description: checkoutSessionId
+          required: true
+          type: string
+        - in: body
+          name: updateCheckoutSessionRequest
+          description: updateCheckoutSessionRequest
+          required: true
           schema:
-            type: "string"
-        400:
-          description: "Invalid username/password supplied"
-  /user/logout:
-    get:
-      tags:
-      - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      operationId: "logoutUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters: []
+            $ref: '#/definitions/UpdateCheckoutSessionRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        default:
-          description: "successful operation"
-  /user:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CheckoutSessionResponse'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+  /v2/checkoutSessions/{checkoutSessionId}/complete:
     post:
       tags:
-      - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
+        - Checkout Session
+      summary: Complete Checkout Session
+      operationId: completeCheckoutSessionUsingPOST
       consumes:
-      - "application/json"
+        - application/xml
+        - application/json
       produces:
-      - "application/json"
-      - "application/xml"
+        - application/json
+        - application/xml
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: checkoutSessionId
+          in: path
+          description: checkoutSessionId
+          required: true
+          type: string
+        - in: body
+          name: completeCheckoutSessionRequest
+          description: completeCheckoutSessionRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CompleteCheckoutSessionRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
       responses:
-        default:
-          description: "successful operation"
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "https://petstore.swagger.io/oauth/authorize"
-    flow: "implicit"
-    scopes:
-      read:pets: "read your pets"
-      write:pets: "modify pets in your account"
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CheckoutSessionResponse'
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/deliveryTrackers/:
+    post:
+      tags:
+        - Delivery Tracker
+      summary: Create Delivery Tracker
+      operationId: createDeliveryTrackerUsingPOST
+      consumes:
+        - application/xml
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: createDeliveryTrackerRequest
+          description: createDeliveryTrackerRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CreateDeliveryTrackerRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/DeliveryTrackerResponse'
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
+  /v2/refunds/:
+    post:
+      tags:
+        - Refund
+      summary: Create Refund
+      operationId: createRefundUsingPOST
+      consumes:
+        - application/xml
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - in: body
+          name: createRefundRequest
+          description: createRefundRequest
+          required: true
+          schema:
+            $ref: '#/definitions/CreateRefundRequest'
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+        - name: x-amz-pay-idempotency-key
+          in: header
+          description: x-amz-pay-idempotency-key
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Ok
+          schema:
+            $ref: '#/definitions/RefundResponse'
+        '201':
+          description: Success
+          schema:
+            $ref: '#/definitions/RefundResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource Not Found
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: InternalServer Error
+  /v2/refunds/{refundId}:
+    get:
+      tags:
+        - Refund
+      summary: Get Refund
+      operationId: getRefundUsingGET
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: authorization
+          in: header
+          description: authorization
+          required: true
+          type: string
+        - name: refundId
+          in: path
+          description: refundId
+          required: true
+          type: string
+        - name: x-amz-pay-date
+          in: header
+          description: x-amz-pay-date
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RefundResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized Access
+        '403':
+          description: Invalid Authorization Token
+        '404':
+          description: Resource Not Found
+        '405':
+          description: Request Not Supported
+        '408':
+          description: Request Timeout
+        '422':
+          description: Unprocessable Entity
+        '429':
+          description: Too Many Requests
+        '500':
+          description: InternalServer Error
+        '503':
+          description: Service Unavailable
 definitions:
-  ApiResponse:
-    type: "object"
+  Address:
+    type: object
     properties:
-      code:
-        type: "integer"
-        format: "int32"
+      addressLine1:
+        type: string
+      addressLine2:
+        type: string
+      addressLine3:
+        type: string
+      city:
+        type: string
+      countryCode:
+        type: string
+      county:
+        type: string
+      district:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      postalCode:
+        type: string
+      stateOrRegion:
+        type: string
+    title: Address
+  AddressRestrictions:
+    type: object
+    properties:
+      restrictions:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/Restriction'
       type:
-        type: "string"
-      message:
-        type: "string"
-  Category:
-    type: "object"
+        type: string
+    title: AddressRestrictions
+  Amount:
+    type: object
     properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
+      amount:
+        type: string
+      currencyCode:
+        type: string
+    title: Amount
+  Buyer:
+    type: object
     properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          type: "string"
-          xml:
-            name: "photoUrl"
-      tags:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          xml:
-            name: "tag"
-          $ref: "#/definitions/Tag"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
-    xml:
-      name: "Pet"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-    xml:
-      name: "Order"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
+      buyerId:
+        type: string
       email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      primeMembershipTypes:
+        type: array
+        items:
+          type: object
+    title: Buyer
+  BuyerResponse:
+    type: object
+    properties:
+      billingAddress:
+        $ref: '#/definitions/Address'
+      buyerId:
+        type: string
+      countryCode:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      postalCode:
+        type: string
+      primeMembershipTypes:
+        type: array
+        items:
+          type: string
+      shippingAddress:
+        $ref: '#/definitions/Address'
+    title: BuyerResponse
+  CancelChargeRequest:
+    type: object
+    properties:
+      cancellationReason:
+        type: string
+    title: CancelChargeRequest
+  CaptureChargeRequest:
+    type: object
+    properties:
+      captureAmount:
+        $ref: '#/definitions/Amount'
+      softDescriptor:
+        type: string
+    title: CaptureChargeRequest
+  ChargePermissionResponse:
+    type: object
+    properties:
+      billingAddress:
+        $ref: '#/definitions/Address'
+      buyer:
+        $ref: '#/definitions/Buyer'
+      chargePermissionId:
+        type: string
+      chargePermissionReferenceId:
+        type: string
+      chargePermissionType:
+        type: string
+      creationTimestamp:
+        type: string
+      expirationTimestamp:
+        type: string
+      limits:
+        $ref: '#/definitions/Limits'
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      paymentPreferences:
+        type: array
+        items:
+          $ref: '#/definitions/PaymentPreference'
+      platformId:
+        type: string
+      presentmentCurrency:
+        type: string
+      recurringMetadata:
+        $ref: '#/definitions/RecurringMetadata'
+      releaseEnvironment:
+        type: string
+      shippingAddress:
+        $ref: '#/definitions/Address'
+      statusDetails:
+        $ref: '#/definitions/StatusDetails'
+    title: ChargePermissionResponse
+  ChargeResponse:
+    type: object
+    properties:
+      captureAmount:
+        $ref: '#/definitions/Amount'
+      chargeAmount:
+        $ref: '#/definitions/Amount'
+      chargeId:
+        type: string
+      chargePermissionId:
+        type: string
+      conversionRate:
+        type: number
+        format: double
+      convertedAmount:
+        $ref: '#/definitions/Amount'
+      creationTimestamp:
+        type: string
+      expirationTimestamp:
+        type: string
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      providerMetadata:
+        $ref: '#/definitions/ProviderMetadata'
+      refundedAmount:
+        $ref: '#/definitions/Amount'
+      releaseEnvironment:
+        type: string
+      softDescriptor:
+        type: string
+      statusDetails:
+        $ref: '#/definitions/StatusDetails'
+    title: ChargeResponse
+  CheckoutSessionResponse:
+    type: object
+    properties:
+      billingAddress:
+        $ref: '#/definitions/Address'
+      buyer:
+        $ref: '#/definitions/Buyer'
+      chargeId:
+        type: string
+      chargePermissionId:
+        type: string
+      chargePermissionType:
+        type: string
+      checkoutSessionId:
+        type: string
+      constraints:
+        type: array
+        items:
+          $ref: '#/definitions/Constraint'
+      creationTimestamp:
+        type: string
+      deliverySpecifications:
+        $ref: '#/definitions/DeliverySpecifications'
+      expirationTimestamp:
+        type: string
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      paymentDetails:
+        $ref: '#/definitions/PaymentDetails'
+      paymentPreferences:
+        type: array
+        items:
+          $ref: '#/definitions/PaymentPreference'
+      platformId:
+        type: string
+      productType:
+        type: string
+      providerMetadata:
+        $ref: '#/definitions/ProviderMetadata'
+      recurringMetadata:
+        $ref: '#/definitions/RecurringMetadata'
+      releaseEnvironment:
+        type: string
+      shippingAddress:
+        $ref: '#/definitions/Address'
+      statusDetails:
+        $ref: '#/definitions/StatusDetails'
+      storeId:
+        type: string
+      supplementaryData:
+        type: string
+      webCheckoutDetails:
+        $ref: '#/definitions/WebCheckoutDetails'
+    title: CheckoutSessionResponse
+  CloseChargePermissionRequest:
+    type: object
+    properties:
+      cancelPendingCharges:
+        type: boolean
+      closureReason:
+        type: string
+    title: CloseChargePermissionRequest
+  CompleteCheckoutSessionRequest:
+    type: object
+    properties:
+      chargeAmount:
+        $ref: '#/definitions/Amount'
+    title: CompleteCheckoutSessionRequest
+  Constraint:
+    type: object
+    properties:
+      constraintId:
+        type: string
+      description:
+        type: string
+    title: Constraint
+  CreateChargeRequest:
+    type: object
+    properties:
+      canHandlePendingAuthorization:
+        type: boolean
+      captureNow:
+        type: boolean
+      chargeAmount:
+        $ref: '#/definitions/Amount'
+      chargePermissionId:
+        type: string
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      providerMetadata:
+        $ref: '#/definitions/ProviderMetadata'
+      softDescriptor:
+        type: string
+    title: CreateChargeRequest
+  CreateCheckoutSessionRequest:
+    type: object
+    properties:
+      deliverySpecifications:
+        $ref: '#/definitions/DeliverySpecifications'
+      scopes:
+        type: array
+        items:
+          type: string
+      storeId:
+        type: string
+      webCheckoutDetails:
+        $ref: '#/definitions/WebCheckoutDetails'
+    title: CreateCheckoutSessionRequest
+  CreateDeliveryTrackerRequest:
+    type: object
+    properties:
+      amazonOrderReferenceId:
+        type: string
+      deliveryDetails:
+        type: array
+        items:
+          $ref: '#/definitions/DeliveryDetail'
+    title: CreateDeliveryTrackerRequest
+  CreateRefundRequest:
+    type: object
+    properties:
+      chargeId:
+        type: string
+      refundAmount:
+        $ref: '#/definitions/Amount'
+      softDescriptor:
+        type: string
+    title: CreateRefundRequest
+  DeliveryDetail:
+    type: object
+    properties:
+      carrierCode:
+        type: string
+      trackingNumber:
+        type: string
+    title: DeliveryDetail
+  DeliverySpecifications:
+    type: object
+    properties:
+      addressRestrictions:
+        $ref: '#/definitions/AddressRestrictions'
+      specialRestrictions:
+        type: array
+        items:
+          type: string
+    title: DeliverySpecifications
+  DeliveryTrackerResponse:
+    type: object
+    properties:
+      amazonOrderReferenceId:
+        type: string
+      deliveryDetails:
+        type: array
+        items:
+          $ref: '#/definitions/DeliveryDetail'
+    title: DeliveryTrackerResponse
+  Frequency:
+    type: object
+    properties:
+      unit:
+        type: string
+      value:
+        type: string
+    title: Frequency
+  Limits:
+    type: object
+    properties:
+      amountBalance:
+        $ref: '#/definitions/Amount'
+      amountLimit:
+        $ref: '#/definitions/Amount'
+    title: Limits
+  MerchantMetadata:
+    type: object
+    properties:
+      customInformation:
+        type: string
+      merchantReferenceId:
+        type: string
+      merchantStoreName:
+        type: string
+      noteToBuyer:
+        type: string
+    title: MerchantMetadata
+  PaymentDetails:
+    type: object
+    properties:
+      allowOvercharge:
+        type: string
+      canHandlePendingAuthorization:
+        type: boolean
+      chargeAmount:
+        $ref: '#/definitions/Amount'
+      extendExpiration:
+        type: boolean
+      paymentIntent:
+        type: string
+      presentmentCurrency:
+        type: string
+      softDescriptor:
+        type: string
+      totalOrderAmount:
+        $ref: '#/definitions/Amount'
+    title: PaymentDetails
+  PaymentPreference:
+    type: object
+    properties:
+      paymentDescriptor:
+        type: string
+    title: PaymentPreference
+  ProviderMetadata:
+    type: object
+    properties:
+      providerReferenceId:
+        type: string
+    title: ProviderMetadata
+  RecurringMetadata:
+    type: object
+    properties:
+      amount:
+        $ref: '#/definitions/Amount'
+      frequency:
+        $ref: '#/definitions/Frequency'
+    title: RecurringMetadata
+  RefundResponse:
+    type: object
+    properties:
+      chargeId:
+        type: string
+      refundAmount:
+        $ref: '#/definitions/Amount'
+      refundId:
+        type: string
+      releaseEnvironment:
+        type: string
+      softDescriptor:
+        type: string
+      statusDetails:
+        $ref: '#/definitions/StatusDetails'
+    title: RefundResponse
+  Restriction:
+    type: object
+    properties:
+      statesOrRegions:
+        type: array
+        items:
+          type: string
+      zipCodes:
+        type: array
+        items:
+          type: string
+    title: Restriction
+  StatusDetails:
+    type: object
+    properties:
+      lastUpdatedTimestamp:
+        type: string
+      reasonCode:
+        type: string
+      reasonDescription:
+        type: string
+      state:
+        type: string
+    title: StatusDetails
+  UpdateChargePermissionRequest:
+    type: object
+    properties:
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      recurringMetadata:
+        $ref: '#/definitions/RecurringMetadata'
+    title: UpdateChargePermissionRequest
+  UpdateCheckoutSessionRequest:
+    type: object
+    properties:
+      merchantMetadata:
+        $ref: '#/definitions/MerchantMetadata'
+      paymentDetails:
+        $ref: '#/definitions/PaymentDetails'
+      webCheckoutDetails:
+        $ref: '#/definitions/WebCheckoutDetails'
+    title: UpdateCheckoutSessionRequest
+  WebCheckoutDetails:
+    type: object
+    properties:
+      amazonPayRedirectUrl:
+        type: string
+      checkoutCancelUrl:
+        type: string
+      checkoutResultReturnUrl:
+        type: string
+      checkoutReviewReturnUrl:
+        type: string
+    title: WebCheckoutDetails
